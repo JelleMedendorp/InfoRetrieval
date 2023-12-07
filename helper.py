@@ -8,6 +8,8 @@ from nltk.corpus import stopwords
 import string
 from collections import Counter
 import time
+import math
+import numpy
 # nltk.download('stopwords')
 
 # Progress bar
@@ -57,7 +59,7 @@ def convert_to_jsonl(folder):
 
         # Remove old json file
         f.close()
-        os.remove(json_file)
+        # os.remove(json_file)
         
     json_object = json.dumps(text_collection, indent=4)
  
@@ -66,7 +68,7 @@ def convert_to_jsonl(folder):
         outfile.write(json_object)
 
     # Remove empty folder
-    os.rmdir(folder)
+    # os.rmdir(folder)
 
 
 # Cleaning and counting text
@@ -96,3 +98,47 @@ def process_text(json_file):
         outfile.write(json_object)
 
     print("Done!")
+
+def get_all_unique_words(json_file):
+    f = open(json_file)
+    data = json.load(f)
+
+    unique_words = set()
+    for document in data.keys():
+        unique_words.update(set(data[document].keys()))
+    return unique_words
+
+def log_word_freq(word, article_dict):
+    return 1 + math.log(article_dict[word], 2)
+
+def atfbn(word, article_dict):
+    term_freq = article_dict[word]
+    total_terms = sum(list(article_dict.values()))
+    average_term_freq = term_freq / total_terms
+    return ((1 + math.log(term_freq, 2)) / (1 + math.log(average_term_freq,2)))
+
+def count_term_num_docs(data, word):
+    pass
+
+def icf(data, word):
+    total_num_doc = data.keys()
+    term_num_docs = count_term_num_docs(data, word) 
+    return(math.log(((total_num_doc + 1) / term_num_docs)),2)
+
+def create_document_representation(json_file):
+    f = open(json_file)
+    data = json.load(f)
+
+    unique_words = get_all_unique_words(json_file)
+    doc_representation = []
+    for document in data.keys():
+        output_doc = []
+        for word in unique_words:
+            if word in data[document].keys():
+                value = atfbn(word, data[document])
+            else:
+                value = 0
+            output_doc.append(value)
+        doc_representation.append(output_doc)
+    return doc_representation
+    
