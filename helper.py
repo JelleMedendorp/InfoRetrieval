@@ -100,6 +100,7 @@ def process_text(json_file):
 
     print("Done!")
 
+# Create a set with all unique words
 def get_all_unique_words(json_file):
     f = open(json_file)
     data = json.load(f)
@@ -109,15 +110,18 @@ def get_all_unique_words(json_file):
         unique_words.update(set(data[document].keys()))
     return unique_words
 
+# Return the logarithm of a termfrequency
 def log_word_freq(word, article_dict):
     return 1 + math.log(article_dict[word], 2)
 
+# Return Average-term-frequency-based normalization
 def atfbn(word, article_dict):
     term_freq = article_dict[word]
     total_terms = sum(list(article_dict.values()))
     average_term_freq = term_freq / total_terms
     return ((1 + math.log(term_freq, 2)) / (1 + math.log(average_term_freq,2)))
 
+# Return the amount of times a document contains a certain term
 def count_term_num_docs(data, word):
     count = 0
     for document in data.keys():
@@ -125,20 +129,24 @@ def count_term_num_docs(data, word):
             count += 1
     return count
 
+# Return Inverse collection frequency
 def icf(data, word):
     total_num_doc = len(data.keys())
     term_num_docs = count_term_num_docs(data, word) 
     return math.log(((total_num_doc + 1) / term_num_docs),2)
 
+# Return the average document length
 def avg_document_length(json_file):
     f = open(json_file)
     data = json.load(f)
     return mean([sum(data[document].values()) for document in data.keys()])
 
-def pun(data, document, avgdoclen, slope=0.4):
+# Return Pivoted unique normalization
+def pun(data, document, avgdoclen, slope=0.2):
     document_length = sum(data[document].values())
     return (1 - slope) + slope * (document_length / avgdoclen)
 
+# Creating document representation Ltu
 def create_document_representation(json_file, avgdoclen):
     f = open(json_file)
     data = json.load(f)
