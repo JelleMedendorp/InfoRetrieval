@@ -10,6 +10,7 @@ from collections import Counter
 import time
 import math
 import numpy
+from statistics import mean 
 # nltk.download('stopwords')
 
 # Progress bar
@@ -127,9 +128,18 @@ def count_term_num_docs(data, word):
 def icf(data, word):
     total_num_doc = len(data.keys())
     term_num_docs = count_term_num_docs(data, word) 
-    return(math.log(((total_num_doc + 1) / term_num_docs)),2)
+    return math.log(((total_num_doc + 1) / term_num_docs),2)
 
-def create_document_representation(json_file):
+def avg_document_length(json_file):
+    f = open(json_file)
+    data = json.load(f)
+    return mean([sum(data[document].values()) for document in data.keys()])
+
+def pun(data, document, avgdoclen, slope=0.4):
+    document_length = sum(data[document].values())
+    return (1 - slope) + slope * (document_length / avgdoclen)
+
+def create_document_representation(json_file, avgdoclen):
     f = open(json_file)
     data = json.load(f)
 
@@ -139,10 +149,9 @@ def create_document_representation(json_file):
         output_doc = []
         for word in unique_words:
             if word in data[document].keys():
-                value = (atfbn(word, data[document]), icf(data, word))
+                value = (atfbn(word, data[document]) * icf(data, word) * pun(data, document, avgdoclen))
             else:
-                value = (0,0)
+                value = 0
             output_doc.append(value)
         doc_representation.append(output_doc)
     return doc_representation
-    
