@@ -118,10 +118,14 @@ def atfbn(word, article_dict):
     return ((1 + math.log(term_freq, 2)) / (1 + math.log(average_term_freq,2)))
 
 def count_term_num_docs(data, word):
-    pass
+    count = 0
+    for document in data.keys():
+        if word in data[document].keys():
+            count += 1
+    return count
 
 def icf(data, word):
-    total_num_doc = data.keys()
+    total_num_doc = len(data.keys())
     term_num_docs = count_term_num_docs(data, word) 
     return(math.log(((total_num_doc + 1) / term_num_docs)),2)
 
@@ -135,9 +139,9 @@ def create_document_representation(json_file):
         output_doc = []
         for word in unique_words:
             if word in data[document].keys():
-                value = atfbn(word, data[document])
+                value = (atfbn(word, data[document]), icf(data, word))
             else:
-                value = 0
+                value = (0,0)
             output_doc.append(value)
         doc_representation.append(output_doc)
     return doc_representation
