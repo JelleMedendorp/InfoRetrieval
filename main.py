@@ -8,4 +8,9 @@ from helper import*
 # convert_to_jsonl("comm_use_subset")
 
 # Processing text
-process_text("text_collection.json")
+# process_text("text_collection.json")
+
+# Creating reversed index
+ind = InvertedIndex()
+index(ind, 'clean_text_collection.json')
+ind.write_to_file('test.txt')
