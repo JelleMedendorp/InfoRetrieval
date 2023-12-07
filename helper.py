@@ -176,3 +176,9 @@ def get_queries(xml_file):
 
     # Print the result
     print(topic_tuples)
+
+def calculate_term_query_vector():
+    l = Pass
+    n = 1
+    u = Pass
+    return l*n*u
