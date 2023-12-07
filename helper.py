@@ -10,7 +10,9 @@ from collections import Counter
 import time
 import math
 import numpy
-from statistics import mean 
+from statistics import mean
+from bs4 import BeautifulSoup
+from xml.etree import ElementTree as ET
 # nltk.download('stopwords')
 
 # Progress bar
@@ -163,3 +165,14 @@ def create_document_representation(json_file, avgdoclen):
             output_doc.append(value)
         doc_representation.append(output_doc)
     return doc_representation
+
+def get_queries(xml_file):
+    # Parse the XML data
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+
+    # Extract topic numbers and queries as tuples
+    topic_tuples = [(topic.attrib['number'], topic.find('query').text) for topic in root.findall('topic')]
+
+    # Print the result
+    print(topic_tuples)

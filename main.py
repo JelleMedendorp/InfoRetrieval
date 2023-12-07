@@ -11,7 +11,10 @@ from helper import*
 # process_text("text_collection.json")
 
 # Calculating average document length
-avgdoclen = avg_document_length('clean_text_collection.json')
+# avgdoclen = avg_document_length('clean_text_collection.json')
 
 # creating document representation Ltu
-print(create_document_representation('clean_text_collection.json',avgdoclen))
+# print(create_document_representation('clean_text_collection.json',avgdoclen))
+
+# get all queries
+print(get_queries("test_topics.xml"))
