@@ -9,7 +9,7 @@ import string
 from collections import Counter
 import time
 import math
-import numpy
+import numpy as np
 from statistics import mean
 from bs4 import BeautifulSoup
 from xml.etree import ElementTree as ET
@@ -156,7 +156,7 @@ def create_document_representation(json_file, avgdoclen):
     data = json.load(f)
 
     unique_words = get_all_unique_words(json_file)
-    doc_representation = []
+    doc_representation = ()
     for document in data.keys():
         output_doc = []
         for word in unique_words:
