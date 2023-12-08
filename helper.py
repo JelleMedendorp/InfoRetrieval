@@ -182,7 +182,7 @@ def get_queries(xml_file):
         outfile.write(json_object)
 
 
-# Creating document representation Ltu
+# Creating query representation lnu
 def create_query_representation(json_file, avgdoclen):
     f = open(json_file)
     data = json.load(f)
