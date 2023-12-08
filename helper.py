@@ -7,11 +7,9 @@ import nltk
 from nltk.corpus import stopwords
 import string
 from collections import Counter
-import time
 import math
 import numpy as np
 from statistics import mean
-from bs4 import BeautifulSoup
 from xml.etree import ElementTree as ET
 # nltk.download('stopwords')
 
@@ -156,17 +154,20 @@ def create_document_representation(json_file, avgdoclen):
     data = json.load(f)
 
     unique_words = get_all_unique_words(json_file)
-    doc_representation = ()
+    doc_representation = {}
     for document in data.keys():
-        output_doc = []
+        output_doc = {}
         for word in unique_words:
             if word in data[document].keys():
                 value = (atfbn(word, data[document]) * icf(data, word) * pun(data, document, avgdoclen))
             else:
                 value = 0
-            output_doc.append(value)
-        doc_representation.append(output_doc)
-    return doc_representation
+            output_doc[word] = value
+        doc_representation[document] = output_doc
+    
+    json_object = json.dumps(doc_representation, indent=4)
+    with open("document_representation.json", "w") as outfile:
+        outfile.write(json_object)
 
 def get_queries(xml_file):
     # Parse the XML data
@@ -187,14 +188,46 @@ def create_query_representation(json_file, avgdoclen):
     data = json.load(f)
 
     unique_words = get_all_unique_words(json_file)
-    query_representation = []
-    for document in data.keys():
-        output_query = []
+    query_representation = {}
+    for query in data.keys():
+        output_query = {}
         for word in unique_words:
-            if word in data[document].keys():
-                value = (log_word_freq(word, data[document]) * 1 * pun(data, document, avgdoclen))
+            if word in data[query].keys():
+                value = (log_word_freq(word, data[query]) * 1 * pun(data, query, avgdoclen))
             else:
                 value = 0
-            output_query.append(value)
-        query_representation.append(output_query)
-    return query_representation
+            output_query[word] = value
+        query_representation[query]=output_query
+    
+    json_object = json.dumps(query_representation, indent=4)
+    with open("query_representation.json", "w") as outfile:
+        outfile.write(json_object)
+
+def cosine_similarity(query_vectors, document_vectors):
+    dot_product = np.dot(query_vectors, document_vectors)
+    norm_query = np.linalg.norm(query_vectors)
+    norm_doc = np.linalg.norm(document_vectors)
+    return dot_product / (norm_query * norm_doc)
+
+# Score document
+def retrieving(query_num, query_rep, doc_rep):
+    query_json = open(query_rep)
+    query_data = json.load(query_json)
+
+    doc_json = open(doc_rep)
+    doc_data = json.load(doc_json)
+
+    query_vectors = list(query_data[query_num].values())
+    similarities = []
+    
+    for document in doc_data.keys():
+        doc_vectors = []
+        for word in query_data[query_num].keys():
+            doc_vectors.append(doc_data[document][word])
+        similarities.append((document , cosine_similarity(query_vectors, doc_vectors)))
+
+    return similarities
+        
+        
+
+
