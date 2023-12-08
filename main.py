@@ -17,6 +17,9 @@ from helper import*
 # print(create_document_representation('clean_text_collection.json',avgdoclen))
 
 # get all queries
-# print(get_queries("test_topics.xml"))
+get_queries("test_topics.xml")
+process_text("query_collection.json")
 
 # Calculate term query vectors
+avgquerylen = avg_document_length('clean_query_collection.json')
+print(create_query_representation('clean_query_collection.json',avgquerylen))

@@ -95,9 +95,11 @@ def process_text(json_file):
         # Progress bar
         printProgressBar(i + 1, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
+
+    new_file_name = "clean_" + json_file
     # Saving data to json file
     json_object = json.dumps(clean_text_collection, indent=4)
-    with open('clean_text_collection.json', 'w') as outfile:
+    with open(new_file_name, 'w') as outfile:
         outfile.write(json_object)
 
     print("Done!")
@@ -110,7 +112,7 @@ def get_all_unique_words(json_file):
     unique_words = set()
     for document in data.keys():
         unique_words.update(set(data[document].keys()))
-    return unique_words
+    return list(unique_words)
 
 # Return the logarithm of a termfrequency
 def log_word_freq(word, article_dict):
@@ -172,13 +174,27 @@ def get_queries(xml_file):
     root = tree.getroot()
 
     # Extract topic numbers and queries as tuples
-    topic_tuples = [(topic.attrib['number'], topic.find('query').text) for topic in root.findall('topic')]
+    topic_tuples = {topic.attrib['number']: topic.find('query').text for topic in root.findall('topic')}
+    
+    json_object = json.dumps(topic_tuples, indent=4)
+    with open("query_collection.json", "w") as outfile:
+        outfile.write(json_object)
 
-    # Print the result
-    print(topic_tuples)
 
-def calculate_term_query_vector():
-    l = Pass
-    n = 1
-    u = Pass
-    return l*n*u
+# Creating document representation Ltu
+def create_query_representation(json_file, avgdoclen):
+    f = open(json_file)
+    data = json.load(f)
+
+    unique_words = get_all_unique_words(json_file)
+    query_representation = []
+    for document in data.keys():
+        output_query = []
+        for word in unique_words:
+            if word in data[document].keys():
+                value = (log_word_freq(word, data[document]) * 1 * pun(data, document, avgdoclen))
+            else:
+                value = 0
+            output_query.append(value)
+        query_representation.append(output_query)
+    return query_representation
