@@ -155,6 +155,8 @@ def create_document_representation(json_file, avgdoclen):
 
     unique_words = get_all_unique_words(json_file)
     doc_representation = {}
+
+    # Calculating vector for every unique word per document
     for document in data.keys():
         output_doc = {}
         for word in unique_words:
@@ -181,14 +183,15 @@ def get_queries(xml_file):
     with open("query_collection.json", "w") as outfile:
         outfile.write(json_object)
 
-
-# Creating document representation Ltu
+# Creating query representation lnu
 def create_query_representation(json_file, avgdoclen):
     f = open(json_file)
     data = json.load(f)
 
     unique_words = get_all_unique_words(json_file)
     query_representation = {}
+
+    # Calculating vector for every unique word per query
     for query in data.keys():
         output_query = {}
         for word in unique_words:
@@ -203,31 +206,57 @@ def create_query_representation(json_file, avgdoclen):
     with open("query_representation.json", "w") as outfile:
         outfile.write(json_object)
 
+# Return cosine similarity
 def cosine_similarity(query_vectors, document_vectors):
     dot_product = np.dot(query_vectors, document_vectors)
     norm_query = np.linalg.norm(query_vectors)
     norm_doc = np.linalg.norm(document_vectors)
     return dot_product / (norm_query * norm_doc)
 
-# Score document
-def retrieving(query_num, query_rep, doc_rep):
-    query_json = open(query_rep)
-    query_data = json.load(query_json)
-
-    doc_json = open(doc_rep)
-    doc_data = json.load(doc_json)
-
-    query_vectors = list(query_data[query_num].values())
+# Score documents
+def retrieving(qid, query, query_rep, doc_rep):
+    query_vectors = list(query_rep[qid].values())
     similarities = []
     
-    for document in doc_data.keys():
+    for document in doc_rep.keys():
         doc_vectors = []
-        for word in query_data[query_num].keys():
-            doc_vectors.append(doc_data[document][word])
+        for word in query_rep[qid].keys():
+            doc_vectors.append(doc_rep[document][word])
         similarities.append((document , cosine_similarity(query_vectors, doc_vectors)))
 
-    return similarities
+    return sorted(similarities, key=lambda x:x[1])
         
-        
+# # Score documents
+# def retrieving(qid, query, query_rep, doc_rep):
+#     query_vectors = [query_rep[qid][word] for word in query]
+#     similarities = []
+    
+#     for document in doc_rep.keys():
+#         doc_vectors = []
+#         for word in query:
+#             doc_vectors.append(doc_rep[document][word])
+#         similarities.append((document , cosine_similarity(query_vectors, doc_vectors)))
+
+#     return sorted(similarities, key=lambda x:x[1])
+
+# Create test results
+def get_test_results(queries, query_rep, doc_rep):
+    query_data = json.load(open(queries))
+    query_rep_data = json.load(open(query_rep))
+    doc_rep_data = json.load(open(doc_rep))
+
+    with open ('results.txt', 'w') as fp:
+
+        for qid , q in query_data.items():
+            for rank, doc_score in enumerate(retrieving(qid, q, query_rep_data, doc_rep_data)):
+                rank = rank + 1
+                docid = doc_score[0]
+                score = doc_score[1]
+
+                # output_string = str(qid) + str(docid) + str(rank) + str(score)
+
+                fp.write("%s %s %s %s\n" %(str(qid),str(docid),str(rank),str(score)) )
+
+
 
 
