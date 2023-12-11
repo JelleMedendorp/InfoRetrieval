@@ -157,18 +157,24 @@ def create_document_representation(json_file, avgdoclen):
 
     # Calculating vector for every unique word per document
     for document in data.keys():
+
         output_doc = {}
-        for word in unique_words:
+        lu = len(unique_words)
+        printProgressBar(0, lu, prefix = 'Progress:', suffix = 'Complete', length = 50)
+        for i, word in enumerate(unique_words):
             if word in data[document].keys():
                 value = (atfbn(word, data[document]) * icf(data, word) * pun(data, document, avgdoclen))
             else:
                 value = 0
             output_doc[word] = value
+
+            printProgressBar(i + 1, lu, prefix = 'Progress:', suffix = 'Complete', length = 50)
+
         doc_representation[document] = output_doc
-    
-    json_object = json.dumps(doc_representation, indent=4)
-    with open("document_representation.json", "w") as outfile:
-        outfile.write(json_object)
+
+        with open("document_representation.json", "w") as outfile:
+            json.dump(doc_representation, outfile, indent=4)
+        
 
 def get_queries(xml_file):
     # Parse the XML data
@@ -244,7 +250,7 @@ def get_test_results(queries, query_rep, doc_rep):
     query_rep_data = json.load(open(query_rep))
     doc_rep_data = json.load(open(doc_rep))
 
-    with open ('results.txt', 'w') as fp:
+    with open ('results', 'w') as fp:
 
         for qid , q in query_data.items():
             for rank, doc_score in enumerate(retrieving(qid, q, query_rep_data, doc_rep_data)):
@@ -254,7 +260,7 @@ def get_test_results(queries, query_rep, doc_rep):
 
                 # output_string = str(qid) + str(docid) + str(rank) + str(score)
 
-                fp.write("%s %s %s %s\n" %(str(qid),str(docid),str(rank),str(score)) )
+                fp.write("%s Q0 %s %s %s STANDARD\n" %(str(qid),str(docid),str(rank),str(score)) )
 
 
 
