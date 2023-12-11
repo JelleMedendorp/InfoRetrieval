@@ -156,11 +156,11 @@ def create_document_representation(json_file, avgdoclen):
     doc_representation = {}
 
     # Calculating vector for every unique word per document
+    l = len(data.keys())
+    printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
     for document in data.keys():
 
         output_doc = {}
-        lu = len(unique_words)
-        printProgressBar(0, lu, prefix = 'Progress:', suffix = 'Complete', length = 50)
         for i, word in enumerate(unique_words):
             if word in data[document].keys():
                 value = (atfbn(word, data[document]) * icf(data, word) * pun(data, document, avgdoclen))
@@ -168,7 +168,7 @@ def create_document_representation(json_file, avgdoclen):
                 value = 0
             output_doc[word] = value
 
-            printProgressBar(i + 1, lu, prefix = 'Progress:', suffix = 'Complete', length = 50)
+        printProgressBar(i + 1, lu, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
         doc_representation[document] = output_doc
 
