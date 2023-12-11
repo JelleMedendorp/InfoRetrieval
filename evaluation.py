@@ -31,4 +31,3 @@ def relevancy_lookup(qrel_text):
             else:
                 relevancies[qid].update({docid:relevancy})
     return relevancies
-

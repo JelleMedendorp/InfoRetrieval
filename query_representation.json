@@ -1,0 +1,20 @@
+{
+    "1": {
+        "superhero": 0,
+        "work": 0,
+        "Mats": 1.0,
+        "squirrel": 1.0
+    },
+    "2": {
+        "superhero": 0,
+        "work": 1.0,
+        "Mats": 1.0,
+        "squirrel": 0
+    },
+    "3": {
+        "superhero": 1.0,
+        "work": 0,
+        "Mats": 1.0,
+        "squirrel": 0
+    }
+}

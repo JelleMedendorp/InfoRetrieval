@@ -2,8 +2,8 @@
 from helper import*
 from evaluation import*
 
-""" Extract all files into a folder called "comm_use_subset" """
-# get_files_from_zip('test_papers.zip')
+# """ Extract all files into a folder called "comm_use_subset" """
+# # get_files_from_zip('test_papers.zip')
 
 """ From every file get a unique ID and text as json """
 convert_to_jsonl("test_papers")
@@ -27,3 +27,6 @@ create_query_representation('clean_query_collection.json',avgquerylen)
 
 """ Creating result.txt"""
 get_test_results("clean_query_collection.json", 'query_representation.json','document_representation.json')
+
+""" Creating relevancy dictionary"""
+print(relevancy_lookup("qrel_test.txt"))

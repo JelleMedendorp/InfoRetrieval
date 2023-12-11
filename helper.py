@@ -119,8 +119,7 @@ def log_word_freq(word, article_dict):
 # Return Average-term-frequency-based normalization
 def atfbn(word, article_dict):
     term_freq = article_dict[word]
-    total_terms = sum(list(article_dict.values()))
-    average_term_freq = term_freq / total_terms
+    average_term_freq = mean(list(article_dict.values()))
     return ((1 + math.log(term_freq, 2)) / (1 + math.log(average_term_freq,2)))
 
 # Return the amount of times a document contains a certain term
@@ -208,7 +207,7 @@ def create_query_representation(json_file, avgdoclen):
 
 # Return cosine similarity
 def cosine_similarity(query_vectors, document_vectors):
-    dot_product = np.dot(query_vectors, document_vectors)
+    dot_product = np.dot(document_vectors, query_vectors)
     norm_query = np.linalg.norm(query_vectors)
     norm_doc = np.linalg.norm(document_vectors)
     return dot_product / (norm_query * norm_doc)
@@ -224,7 +223,7 @@ def retrieving(qid, query, query_rep, doc_rep):
             doc_vectors.append(doc_rep[document][word])
         similarities.append((document , cosine_similarity(query_vectors, doc_vectors)))
 
-    return sorted(similarities, key=lambda x:x[1])
+    return sorted(similarities, key=lambda x:x[1], reverse=True)
         
 # # Score documents
 # def retrieving(qid, query, query_rep, doc_rep):
