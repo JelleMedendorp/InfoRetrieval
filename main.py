@@ -6,7 +6,11 @@ from helper import*
 
 """ From every file get a unique ID and text as json """
 convert_to_jsonl("test_papers")
+""" From every file get a unique ID and text as json """
+convert_to_jsonl("test_papers")
 
+""" Processing text """
+process_text("text_collection.json")
 """ Processing text """
 process_text("text_collection.json")
 
@@ -15,11 +19,19 @@ avgdoclen = avg_document_length('clean_text_collection.json')
 
 """ Creating document representation Ltu """
 create_document_representation('clean_text_collection.json',avgdoclen)
+""" Creating document representation Ltu """
+create_document_representation('clean_text_collection.json',avgdoclen)
 
 """ Get all queries """
 get_queries("test_queries.xml")
 process_text("query_collection.json")
+""" Get all queries """
+get_queries("test_queries.xml")
+process_text("query_collection.json")
 
+""" Calculate term query vectors """
+avgquerylen = avg_document_length('clean_query_collection.json')
+create_query_representation('clean_query_collection.json',avgquerylen)
 """ Calculate term query vectors """
 avgquerylen = avg_document_length('clean_query_collection.json')
 create_query_representation('clean_query_collection.json',avgquerylen)
