@@ -119,7 +119,6 @@ def log_word_freq(word, article_dict):
 # Return Average-term-frequency-based normalization
 def atfbn(word, article_dict):
     term_freq = article_dict[word]
-    total_terms = sum(list(article_dict.values()))
     average_term_freq = mean(list(article_dict.values()))
     return ((1 + math.log(term_freq, 2)) / (1 + math.log(average_term_freq,2)))
 
