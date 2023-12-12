@@ -216,7 +216,14 @@ def cosine_similarity(query_vectors, document_vectors):
     dot_product = np.dot(document_vectors, query_vectors)
     norm_query = np.linalg.norm(query_vectors)
     norm_doc = np.linalg.norm(document_vectors)
-    return dot_product / (norm_query * norm_doc)
+
+    cos_sim = dot_product / (norm_query * norm_doc)
+
+    if np.isnan(cos_sim):
+        print("OEPS")
+        return 0
+    else:
+        return cos_sim
 
 # Score documents
 def retrieving(qid, query, query_rep, doc_rep):
