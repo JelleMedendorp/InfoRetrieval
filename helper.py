@@ -152,7 +152,7 @@ def create_document_representation(json_file, avgdoclen):
     f = open(json_file)
     data = json.load(f)
 
-    unique_words = get_all_unique_words(json_file)
+    unique_words = get_all_unique_words("clean_query_collection.json")
     doc_representation = {}
 
     # Calculating vector for every unique word per document
@@ -223,13 +223,16 @@ def retrieving(qid, query, query_rep, doc_rep):
     query_vectors = list(query_rep[qid].values())
     similarities = []
     
-    for document in doc_rep.keys():
+    l = len(doc_rep.keys())
+    printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+    for i, document in enumerate(doc_rep.keys()):
         doc_vectors = []
         for word in query_rep[qid].keys():
             doc_vectors.append(doc_rep[document][word])
         similarities.append((document , cosine_similarity(query_vectors, doc_vectors)))
+        printProgressBar(i + 1, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
-    return sorted(similarities, key=lambda x:x[1], reverse=True)
+    return sorted(similarities, key=lambda x:x[1], reverse=True)[0:1000]
         
 # # Score documents
 # def retrieving(qid, query, query_rep, doc_rep):
