@@ -19,7 +19,6 @@ def parse_result_line(result_line):
 
     return qid, docid, rank, score
 
-
 def relevancy_lookup(qrel_text):
     with open(qrel_text, 'r') as answers:
         relevancies = {}
