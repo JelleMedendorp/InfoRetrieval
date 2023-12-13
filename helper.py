@@ -4,36 +4,16 @@ import json
 from zipfile import ZipFile
 import glob
 import nltk
-from nltk.corpus import stopwords
-import string
-from collections import Counter
 import math
 import numpy as np
+import string
+import pandas as pd
+from nltk.corpus import stopwords
+from collections import Counter
 from statistics import mean
 from xml.etree import ElementTree as ET
+from tqdm import tqdm
 # nltk.download('stopwords')
-
-# Progress bar
-def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
-    """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
-    # Print New Line on Complete
-    if iteration == total: 
-        print()
 
 # Extracting zipfile 
 def get_files_from_zip(file):
@@ -57,20 +37,12 @@ def convert_to_jsonl(folder):
         for text_part in data['body_text']:
             text = text + text_part['text']
         text_collection[id] = text
-
-        # Remove old json file
-        f.close()
-        # os.remove(json_file)
-        
+    
     json_object = json.dumps(text_collection, indent=4)
  
     # Savind data to json file
     with open("text_collection.json", "w") as outfile:
         outfile.write(json_object)
-
-    # Remove empty folder
-    # os.rmdir(folder)
-
 
 # Cleaning and counting text
 def process_text(json_file):
@@ -79,10 +51,9 @@ def process_text(json_file):
     stop_words = set(stopwords.words('english') + list(string.punctuation))
 
     clean_text_collection = {}
-    l = len(data.keys())
 
     # Progress bar
-    printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+    pbar = tqdm(total=len(data.keys()), desc='Processing documents', unit='doc')
 
     # Cleaning and counting word frequenty
     for i, key in enumerate(data.keys()):
@@ -91,7 +62,7 @@ def process_text(json_file):
         clean_text_collection[key] = Counter(filtered_text)
 
         # Progress bar
-        printProgressBar(i + 1, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+        pbar.update(1)
 
 
     new_file_name = "clean_" + json_file
@@ -143,38 +114,9 @@ def avg_document_length(json_file):
     return mean([sum(data[document].values()) for document in data.keys()])
 
 # Return Pivoted unique normalization
-def pun(data, document, avgdoclen, slope=0.2):
+def pun(data, document, avgdoclen, slope=0.4):
     document_length = sum(data[document].values())
     return (1 - slope) + slope * (document_length / avgdoclen)
-
-# Creating document representation Ltu
-def create_document_representation(json_file, avgdoclen):
-    f = open(json_file)
-    data = json.load(f)
-
-    unique_words = get_all_unique_words("clean_query_collection.json")
-    doc_representation = {}
-
-    # Calculating vector for every unique word per document
-    l = len(data.keys())
-    printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
-    for i, document in enumerate(data.keys()):
-
-        output_doc = {}
-        for word in unique_words:
-            if word in data[document].keys():
-                value = (atfbn(word, data[document]) * icf(data, word) * pun(data, document, avgdoclen))
-            else:
-                value = 0
-            output_doc[word] = value
-
-        printProgressBar(i + 1, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
-
-        doc_representation[document] = output_doc
-
-        with open("document_representation.json", "w") as outfile:
-            json.dump(doc_representation, outfile, indent=4)
-        
 
 def get_queries(xml_file):
     # Parse the XML data
@@ -182,7 +124,7 @@ def get_queries(xml_file):
     root = tree.getroot()
 
     # Extract topic numbers and queries as tuples
-    topic_tuples = {topic.attrib['number']: topic.find('query').text for topic in root.findall('topic')}
+    topic_tuples = {topic.attrib['number']: topic.find('question').text for topic in root.findall('topic')}
     
     json_object = json.dumps(topic_tuples, indent=4)
     with open("query_collection.json", "w") as outfile:
@@ -220,40 +162,26 @@ def cosine_similarity(query_vectors, document_vectors):
     cos_sim = dot_product / (norm_query * norm_doc)
 
     if np.isnan(cos_sim):
-        print("OEPS")
         return 0
     else:
         return cos_sim
 
 # Score documents
-def retrieving(qid, query, query_rep, doc_rep):
+def retrieving(qid, query_rep, doc_rep):
     query_vectors = list(query_rep[qid].values())
     similarities = []
     
     l = len(doc_rep.keys())
-    printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
-    for i, document in enumerate(doc_rep.keys()):
+    pbar = tqdm(total=l, desc='Processing documents', unit='doc')
+    for document in doc_rep.keys():
         doc_vectors = []
         for word in query_rep[qid].keys():
             doc_vectors.append(doc_rep[document][word])
         similarities.append((document , cosine_similarity(query_vectors, doc_vectors)))
-        printProgressBar(i + 1, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+        pbar.update(1)
 
     return sorted(similarities, key=lambda x:x[1], reverse=True)[0:1000]
         
-# # Score documents
-# def retrieving(qid, query, query_rep, doc_rep):
-#     query_vectors = [query_rep[qid][word] for word in query]
-#     similarities = []
-    
-#     for document in doc_rep.keys():
-#         doc_vectors = []
-#         for word in query:
-#             doc_vectors.append(doc_rep[document][word])
-#         similarities.append((document , cosine_similarity(query_vectors, doc_vectors)))
-
-#     return sorted(similarities, key=lambda x:x[1])
-
 # Create test results
 def get_test_results(queries, query_rep, doc_rep):
     query_data = json.load(open(queries))
@@ -268,10 +196,42 @@ def get_test_results(queries, query_rep, doc_rep):
                 docid = doc_score[0]
                 score = doc_score[1]
 
-                # output_string = str(qid) + str(docid) + str(rank) + str(score)
-
                 fp.write("%s Q0 %s %s %s STANDARD\n" %(str(qid),str(docid),str(rank),str(score)) )
 
+def csv_to_json(csv_file):
+    df = pd.read_csv(csv_file)
+    result_dict = {row['cord_uid']:row['abstract'] for _, row in df.iterrows() if pd.notna(row['abstract'])}
 
+    json_object = json.dumps(result_dict, indent=4)
+ 
+    # Savind data to json file
+    with open("abstract_collection.json", "w") as outfile:
+        outfile.write(json_object)
 
+def create_document_representation(json_file, avgdoclen):
+    f = open(json_file)
+    data = json.load(f)
+
+    unique_words = get_all_unique_words("clean_query_collection.json")
+    doc_representation = {}
+
+    # Calculating vector for every unique word per document
+    l = len(data.keys())
+    pbar = tqdm(total=l, desc='Processing documents', unit='doc')
+    for document in data.keys():
+
+        output_doc = {}
+        for word in unique_words:
+            if word in data[document].keys():
+                value = (atfbn(word, data[document]) * icf(data, word) * pun(data, document, avgdoclen))
+            else:
+                value = 0
+            output_doc[word] = value
+
+        doc_representation[document] = output_doc
+        pbar.update(1)
+
+    pbar.close()
+    with open("document_representation.json", "w") as outfile:
+        json.dump(doc_representation, outfile, indent=4)
 
